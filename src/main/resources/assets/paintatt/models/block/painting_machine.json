@@ -1,0 +1,12 @@
+{
+	"parent": "block/cube",
+	"textures": {
+		"particle": "paintatt:blocks/painting_machine",
+		"down": "paintatt:blocks/painting_machine_top",
+		"up": "paintatt:blocks/painting_machine_top",
+		"north": "paintatt:blocks/painting_machine",
+		"west": "paintatt:blocks/painting_machine",
+		"east": "paintatt:blocks/painting_machine",
+		"south": "paintatt:blocks/painting_machine"
+	}
+}
