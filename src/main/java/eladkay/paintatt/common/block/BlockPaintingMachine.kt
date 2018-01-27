@@ -9,6 +9,7 @@ import com.teamwizardry.librarianlib.features.container.SlotType
 import com.teamwizardry.librarianlib.features.container.builtin.BaseWrappers
 import com.teamwizardry.librarianlib.features.container.internal.SlotBase
 import com.teamwizardry.librarianlib.features.helpers.ItemNBTHelper
+import com.teamwizardry.librarianlib.features.kotlin.getTileEntitySafely
 import com.teamwizardry.librarianlib.features.kotlin.isNotEmpty
 import com.teamwizardry.librarianlib.features.kotlin.nbt
 import com.teamwizardry.librarianlib.features.saving.Save
@@ -27,8 +28,10 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumHand
+import net.minecraft.util.NonNullList
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
+import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
 /**
@@ -42,6 +45,15 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
     override fun onBlockActivated(worldIn: World, pos: BlockPos, state: IBlockState, playerIn: EntityPlayer, hand: EnumHand, facing: EnumFacing, hitX: Float, hitY: Float, hitZ: Float): Boolean {
         GuiHandler.open(PaintingMachineContainer.name, playerIn, pos)
         return true
+    }
+
+    override fun getDrops(drops: NonNullList<ItemStack>, world: IBlockAccess, pos: BlockPos, state: IBlockState?, fortune: Int) {
+        super.getDrops(drops, world, pos, state, fortune)
+        val te = world.getTileEntitySafely(pos) as? TilePaintingMachine ?: return
+        drops.add(te.getStackInSlot(TilePaintingMachine.input))
+        drops.add(te.getStackInSlot(TilePaintingMachine.output))
+        drops.add(te.getStackInSlot(TilePaintingMachine.ghost))
+
     }
 
 

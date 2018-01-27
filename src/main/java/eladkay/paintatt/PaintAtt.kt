@@ -28,7 +28,7 @@ object PaintAtt {
         }
 
     }
-    @SidedProxy(clientSide = "eladkay.paintatt.common.ClientProxy", serverSide = "eladkay.paintatt.client.CommonProxy")
+    @SidedProxy(clientSide = "eladkay.paintatt.client.ClientProxy", serverSide = "eladkay.paintatt.common.CommonProxy")
     lateinit var proxy: CommonProxy
     @Mod.EventHandler
     fun preInit(fmlPreInitializationEvent: FMLPreInitializationEvent) {
