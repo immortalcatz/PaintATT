@@ -70,6 +70,7 @@ open class GuiPaintingMachine(inventorySlotsIn: BlockPaintingMachine.PaintingMac
         val progressBar = ComponentProgressBar(PROGRESS_FG, PROGRESS_BG, 77, 37,
                 direction = Option(ComponentSpriteProgressBar.ProgressDirection.X_POS),
                 progress = Option(0f, { 1 - (te.progress / BlockPaintingMachine.TilePaintingMachine.maxProgress) }))
+
         progressBar.render.tooltip { listOf(I18n.format("$MOD_ID:gui.progress", (100 - (100 * te.progress / BlockPaintingMachine.TilePaintingMachine.maxProgress)).toInt())) }
         bg.add(progressBar)
 

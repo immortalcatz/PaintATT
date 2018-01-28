@@ -28,16 +28,17 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.EnumHand
-import net.minecraft.util.NonNullList
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 
 /**
  * Created by Elad on 1/4/2018.
  */
 class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON) {
+    init {
+        setHardness(2f)
+    }
     override fun createTileEntity(world: World, state: IBlockState): TileEntity? {
         return TilePaintingMachine()
     }
@@ -47,14 +48,23 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
         return true
     }
 
-    override fun getDrops(drops: NonNullList<ItemStack>, world: IBlockAccess, pos: BlockPos, state: IBlockState?, fortune: Int) {
-        super.getDrops(drops, world, pos, state, fortune)
-        val te = world.getTileEntitySafely(pos) as? TilePaintingMachine ?: return
-        drops.add(te.getStackInSlot(TilePaintingMachine.input))
-        drops.add(te.getStackInSlot(TilePaintingMachine.output))
-        drops.add(te.getStackInSlot(TilePaintingMachine.ghost))
+    override fun breakBlock(worldIn: World, pos: BlockPos, state: IBlockState) {
+        val te = worldIn.getTileEntitySafely(pos) as? TilePaintingMachine ?: return
+        spawnAsEntity(worldIn, pos, te.getStackInSlot(TilePaintingMachine.input))
+        spawnAsEntity(worldIn, pos, te.getStackInSlot(TilePaintingMachine.output))
+        spawnAsEntity(worldIn, pos, te.getStackInSlot(TilePaintingMachine.ghost))
+        super.breakBlock(worldIn, pos, state)
 
     }
+
+//    override fun getDrops(drops: NonNullList<ItemStack>, world: IBlockAccess, pos: BlockPos, state: IBlockState?, fortune: Int) {
+//        super.getDrops(drops, world, pos, state, fortune)
+//        val te = world.getTileEntitySafely(pos) as? TilePaintingMachine ?: return
+//        drops.add(te.getStackInSlot(TilePaintingMachine.input))
+//        drops.add(te.getStackInSlot(TilePaintingMachine.output))
+//        drops.add(te.getStackInSlot(TilePaintingMachine.ghost))
+//
+//    }
 
 
 
@@ -77,12 +87,7 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
     //    @TileRegister("painting_machine") its bork
     class TilePaintingMachine : TileModInventoryTickable(3) {
         override fun tick() {
-            if(this.module.handler.getStackInSlot(input).isNotEmpty && this.module.handler.getStackInSlot(ghost).isNotEmpty &&
-                    module.handler.getStackInSlot(input).item is ItemBlock && module.handler.getStackInSlot(ghost).item is ItemBlock &&
-                    (module.handler.getStackInSlot(output).isEmpty ||
-                            itemAndNbtEqual(module.handler.getStackInSlot(output),
-                                    getItemStackForPaintedBlock(getBlockFromItem(module.handler.getStackInSlot(input).item), getBlockFromItem(module.handler.getStackInSlot(ghost).item)))) &&
-                    this.module.handler.getStackInSlot(input).item != this.module.handler.getStackInSlot(ghost).item) {
+            if(isInputValid() && isGhostValid()) {
                 if(progress == 0f) {
                     this.module.handler.extractItem(input, 1, false)
                     this.module.handler.insertItem(output,
@@ -92,8 +97,24 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
                     progress = maxProgress
                 } else progress--
             } else progress = maxProgress
+
+
         }
 
+        fun isInputValid(): Boolean {
+            val paintedStack = getItemStackForPaintedBlock(getBlockFromItem(module.handler.getStackInSlot(input).item), getBlockFromItem(module.handler.getStackInSlot(ghost).item))
+            val input = this.module.handler.getStackInSlot(input)
+            val ghost = this.module.handler.getStackInSlot(ghost)
+            return input.isNotEmpty &&
+                    input.item is ItemBlock &&
+                    input.item != ghost.item &&
+                    this.module.handler.insertItem(output, paintedStack, true).isEmpty
+
+        }
+        fun isGhostValid(): Boolean {
+            return this.module.handler.getStackInSlot(ghost).isNotEmpty &&
+                    module.handler.getStackInSlot(ghost).item is ItemBlock
+        }
         companion object {
             val input = 0
             val ghost = 1

@@ -41,3 +41,6 @@ object PaintAtt {
         return timeUnit.convert(diffInMillies, TimeUnit.MILLISECONDS)
     }
 }
+
+infix fun ItemStack.equals(other: Any?) = other is ItemStack && ItemStack.areItemStacksEqual(this, other)
+infix fun ItemStack.nequals(other: Any?) = other !is ItemStack || !ItemStack.areItemStacksEqual(this, other)

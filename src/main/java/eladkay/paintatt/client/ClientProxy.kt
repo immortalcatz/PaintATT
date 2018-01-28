@@ -29,7 +29,7 @@ import java.lang.Float.intBitsToFloat
 /**
  * Created by Elad on 1/4/2018.
  */
-    class ClientProxy : CommonProxy() {
+class ClientProxy : CommonProxy() {
     private val ChunkCache.worldObj by MethodHandleHelper.delegateForReadOnly<ChunkCache, World>(ChunkCache::class.java, "world", "field_72815_e", "e")
     override fun preInit(fmlPreInitializationEvent: FMLPreInitializationEvent) {
         super.preInit(fmlPreInitializationEvent)
