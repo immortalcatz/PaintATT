@@ -89,7 +89,7 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
         override fun tick() {
             if(isInputValid() && isGhostValid()) {
                 if(progress == 0f) {
-                    val stack = this.module.handler.extractItem(input, 1, false)
+                    val stack = this.module.handler.extractItem(input, 1, false) // thanks wire
                     this.module.handler.insertItem(output,
                             getItemStackForPaintedBlock(getBlockFromItem(stack.item), getBlockFromItem(module.handler.getStackInSlot(ghost).item)),
                             false)
@@ -97,8 +97,7 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
                     progress = maxProgress
                 } else progress--
             } else progress = maxProgress
-
-
+            markDirty() // thanks jamie
         }
 
         fun isInputValid(): Boolean {

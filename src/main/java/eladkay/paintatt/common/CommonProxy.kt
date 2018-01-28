@@ -35,7 +35,7 @@ import net.minecraftforge.fml.relauncher.Side
 open class CommonProxy {
     open fun preInit(fmlPreInitializationEvent: FMLPreInitializationEvent) {
         ModBlocks
-        GameRegistry.registerTileEntity(BlockPaintingMachine.TilePaintingMachine::class.java, "painting_machine")
+        GameRegistry.registerTileEntity(BlockPaintingMachine.TilePaintingMachine::class.java, "$MOD_ID:painting_machine")
         MinecraftForge.EVENT_BUS.register(this)
         PacketHandler.register(PacketPaintSync::class.java, Side.CLIENT)
         PacketHandler.register(PacketClear::class.java, Side.CLIENT)
