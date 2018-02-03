@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
  */
 const val MOD_ID = "paintatt"
 const val MOD_NAME = "Paint All the Things"
-const val VERSION = "1.2"
+const val VERSION = "1.0"
 @Mod(modid = MOD_ID, name = MOD_NAME, version = VERSION, acceptedMinecraftVersions = "[1.12.2]", dependencies = "required:librarianlib", modLanguageAdapter = LibrarianLib.ADAPTER)
 object PaintAtt {
     object Tab : ModCreativeTab() {
