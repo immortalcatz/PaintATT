@@ -7,6 +7,7 @@ import com.teamwizardry.librarianlib.features.kotlin.toRl
 import com.teamwizardry.librarianlib.features.methodhandles.MethodHandleHelper
 import eladkay.paintatt.common.ChunkDataPaintAtt
 import eladkay.paintatt.common.CommonProxy
+import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.BufferBuilder
@@ -43,7 +44,8 @@ class ClientProxy : CommonProxy() {
             if(!container.paintData.containsKey(pos)) return@registerBlockHook
             val nbt = container.paintData[pos] ?: return@registerBlockHook
             val tag = ResourceLocation(nbt.getString(nbtTagPaintBlock))
-            val sprite = Minecraft.getMinecraft().textureMapBlocks.getAtlasSprite("${tag.resourceDomain}:blocks/${tag.resourcePath}")
+            val meta = nbt.getInteger(nbtTagPaintMeta)
+            val sprite = getSprite(tag, meta)//Minecraft.getMinecraft().textureMapBlocks.getAtlasSprite("${tag.resourceDomain}:blocks/${tag.resourcePath}")
             retextureModel(sprite, world, model, state, pos, buffer, true)
 
         }
@@ -56,6 +58,12 @@ class ClientProxy : CommonProxy() {
 
         }
 
+    }
+
+    fun getSprite(name: ResourceLocation, meta: Int): TextureAtlasSprite {
+        val iBlockState = Block.REGISTRY.getObject(name).getStateFromMeta(meta)
+        val modelMgr = Minecraft.getMinecraft().blockRendererDispatcher.blockModelShapes.modelManager.blockModelShapes
+        return modelMgr.getTexture(iBlockState)
     }
 
     @SideOnly(Side.CLIENT)

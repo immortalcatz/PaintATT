@@ -1,7 +1,9 @@
 package eladkay.paintatt.common.block
 
 import com.teamwizardry.librarianlib.features.base.block.tile.BlockModContainer
-import com.teamwizardry.librarianlib.features.base.block.tile.TileModInventoryTickable
+import com.teamwizardry.librarianlib.features.base.block.tile.TileModTickable
+import com.teamwizardry.librarianlib.features.base.block.tile.module.ModuleInventory
+import com.teamwizardry.librarianlib.features.base.block.tile.module.ModuleSlots
 import com.teamwizardry.librarianlib.features.container.ContainerBase
 import com.teamwizardry.librarianlib.features.container.GuiHandler
 import com.teamwizardry.librarianlib.features.container.InventoryWrapper
@@ -12,6 +14,7 @@ import com.teamwizardry.librarianlib.features.helpers.ItemNBTHelper
 import com.teamwizardry.librarianlib.features.kotlin.getTileEntitySafely
 import com.teamwizardry.librarianlib.features.kotlin.isNotEmpty
 import com.teamwizardry.librarianlib.features.kotlin.nbt
+import com.teamwizardry.librarianlib.features.saving.Module
 import com.teamwizardry.librarianlib.features.saving.Save
 import eladkay.paintatt.MOD_ID
 import eladkay.paintatt.PaintAtt
@@ -31,6 +34,7 @@ import net.minecraft.util.EnumHand
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.items.IItemHandlerModifiable
 
 /**
  * Created by Elad on 1/4/2018.
@@ -74,10 +78,10 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
                 = itemStack.isItemEqual(other) &&
                 ItemNBTHelper.getCompound(itemStack, PaintAtt.proxy.nbtTagPaint)?.getString(PaintAtt.proxy.nbtTagPaintBlock) ==
                         ItemNBTHelper.getCompound(other, PaintAtt.proxy.nbtTagPaint)?.getString(PaintAtt.proxy.nbtTagPaintBlock)
-        fun getItemStackForPaintedBlock(iBlockState: Block, painted: Block): ItemStack {
-            val stack = ItemStack(iBlockState, 1)
+        fun getItemStackForPaintedBlock(iBlockState: Block, painted: Block, meta1: Int = 0, meta2: Int = 0): ItemStack {
+            val stack = ItemStack(iBlockState, 1, meta2)
             ItemNBTHelper.setCompound(stack, "display", nbt { comp() } as NBTTagCompound)
-            ItemNBTHelper.setCompound(stack, PaintAtt.proxy.nbtTagPaint, nbt { comp(PaintAtt.proxy.nbtTagPaintBlock to painted.registryName!!)} as NBTTagCompound)
+            ItemNBTHelper.setCompound(stack, PaintAtt.proxy.nbtTagPaint, nbt { comp(PaintAtt.proxy.nbtTagPaintBlock to painted.registryName!!, PaintAtt.proxy.nbtTagPaintMeta to meta1)} as NBTTagCompound)
             return stack
         }
     }
@@ -85,13 +89,16 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
 
 
     //    @TileRegister("painting_machine") its bork
-    class TilePaintingMachine : TileModInventoryTickable(3) {
+    class TilePaintingMachine : TileModTickable() {
+        fun getStackInSlot(int: Int) = module.handler.getStackInSlot(int)
+        @Module
+        val module = ModuleInventory(3)
         override fun tick() {
             if(isInputValid() && isGhostValid()) {
                 if(progress == 0f) {
                     val stack = this.module.handler.extractItem(input, 1, false) // thanks wire
                     this.module.handler.insertItem(output,
-                            getItemStackForPaintedBlock(getBlockFromItem(stack.item), getBlockFromItem(module.handler.getStackInSlot(ghost).item)),
+                            getItemStackForPaintedBlock(getBlockFromItem(stack.item), getBlockFromItem(module.handler.getStackInSlot(ghost).item), this.module.handler.extractItem(ghost, 1, true).metadata, stack.metadata),
                             false)
 
                     progress = maxProgress
@@ -101,7 +108,8 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
         }
 
         fun isInputValid(): Boolean {
-            val paintedStack = getItemStackForPaintedBlock(getBlockFromItem(module.handler.getStackInSlot(input).item), getBlockFromItem(module.handler.getStackInSlot(ghost).item))
+            val stack = this.module.handler.extractItem(input, 1, true) // thanks wire
+            val paintedStack = getItemStackForPaintedBlock(getBlockFromItem(module.handler.getStackInSlot(input).item), getBlockFromItem(module.handler.getStackInSlot(ghost).item), this.module.handler.extractItem(ghost, 1, true).metadata, stack.metadata)
             val input = this.module.handler.getStackInSlot(input)
             val ghost = this.module.handler.getStackInSlot(ghost)
             return input.isNotEmpty &&
@@ -146,7 +154,7 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
             }
         }
     }
-    class PaintingMachineWrapper(inventory: TilePaintingMachine) : InventoryWrapper(inventory) {
+    class PaintingMachineWrapper(val block: TilePaintingMachine) : InventoryWrapper(block.module.handler) {
         val input = slots[TilePaintingMachine.input]
         val output = slots[TilePaintingMachine.output]
         val ghost = slots[TilePaintingMachine.ghost]
@@ -175,3 +183,4 @@ val cantBeGhost = listOf<Class<out Block>>(BlockFence::class.java)
 val cantBeGhostOrInput = listOf<Block>(Blocks.CHEST, Blocks.STANDING_SIGN, Blocks.WALL_SIGN, Blocks.MOB_SPAWNER, Blocks.MOB_SPAWNER, Blocks.PISTON,
         Blocks.STICKY_PISTON, Blocks.PISTON_HEAD, Blocks.PISTON_EXTENSION, Blocks.ENDER_CHEST, Blocks.ENCHANTING_TABLE, Blocks.END_PORTAL,
         Blocks.BEACON, Blocks.SKULL, Blocks.STANDING_BANNER, Blocks.BED)
+val ModuleSlots.handler: IItemHandlerModifiable get() = this.wrapper

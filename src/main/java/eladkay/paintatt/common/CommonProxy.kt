@@ -52,13 +52,14 @@ open class CommonProxy {
 
     val nbtTagPaint = "paintatt_paint"
     val nbtTagPaintBlock = "block"
+    val nbtTagPaintMeta = "meta"
 
     //give @p minecraft:stone 1 0 {paintatt_paint:{block:"minecraft:ice"}}
     @SubscribeEvent
     fun blockPlaceEvent(event: BlockEvent.PlaceEvent) {
-        val tag = ItemNBTHelper.getCompound(event.itemInHand, nbtTagPaint)?.getString(nbtTagPaintBlock) ?: return
+        val tag = ItemNBTHelper.getCompound(event.itemInHand, nbtTagPaint) ?: return
         val container = ChunkData.get(event.world, ChunkPos(event.pos), ChunkDataPaintAtt::class.java)!!//getTrueSaveData(event.world)
-        val nbt = nbt { comp(nbtTagPaintBlock to tag) }
+        val nbt = nbt { comp(nbtTagPaintBlock to tag.getString(nbtTagPaintBlock), nbtTagPaintMeta to tag.getInteger(nbtTagPaintMeta)) }
         container.paintData.put(event.pos, nbt as NBTTagCompound)
         container.markDirty()
         // TODO: packet clear and then packets for every paint block
@@ -98,16 +99,19 @@ open class CommonProxy {
         for((pos, nbtTag) in container.paintData)
             PacketHandler[MOD_ID].send(TargetAll, PacketPaintSync(pos, nbtTag))
         val tag = nbt.getString(nbtTagPaintBlock)
+        val meta = nbt.getInteger(nbtTagPaintMeta)
         event.drops.clear()
-        event.drops.add(BlockPaintingMachine.getItemStackForPaintedBlock(event.state.block, Block.REGISTRY.getObject(ResourceLocation(tag))))
+        event.drops.add(BlockPaintingMachine.getItemStackForPaintedBlock(event.state.block, Block.REGISTRY.getObject(ResourceLocation(tag)), meta, event.state.block.getMetaFromState(event.state)))
     }
 
 
 
     @SubscribeEvent
     fun tooltip(event: ItemTooltipEvent) {
-        val tag = ItemNBTHelper.getCompound(event.itemStack, nbtTagPaint)?.getString(nbtTagPaintBlock) ?: return
-        event.toolTip[0] = "${(event.itemStack.unlocalizedName + ".name").localize()} [Painted as ${Block.REGISTRY.getObject(ResourceLocation(tag)).localizedName}]"
+        val tagg = ItemNBTHelper.getCompound(event.itemStack, nbtTagPaint) ?: return
+        val tag = tagg.getString(nbtTagPaintBlock)
+        val meta = tagg.getInteger(nbtTagPaintMeta)
+        event.toolTip[0] = "${(event.itemStack.unlocalizedName + ".name").localize()} [Painted as ${Block.REGISTRY.getObject(ResourceLocation(tag)).getStateFromMeta(meta)}]"
         event.toolTip.add("Painted as " + Block.REGISTRY.getObject(ResourceLocation(tag)).localizedName)
     }
 }

@@ -25,7 +25,7 @@ open class GuiPaintingMachine(inventorySlotsIn: BlockPaintingMachine.PaintingMac
 
     init {
 
-        val te = inventorySlotsIn.invBlock.inventory as BlockPaintingMachine.TilePaintingMachine
+        val te = inventorySlotsIn.invBlock.block
         val bg = ComponentSprite(BG, 0, 0)
         mainComponents.add(bg)
 
