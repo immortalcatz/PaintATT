@@ -32,7 +32,7 @@ open class GuiPaintingMachine(inventorySlotsIn: BlockPaintingMachine.PaintingMac
         val inventory = BaseLayouts.player(inventorySlotsIn.invPlayer)
         bg.add(inventory.root)
         inventory.main.pos = vec(8, 84)
-        inventory.hotbar.pos = vec(8, 142)
+        inventory.hotbar.pos = vec(0, 58)
 
 
         bg.add(ComponentSprite(SLOT, 50, 33))

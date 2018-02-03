@@ -40,7 +40,7 @@ class ClientProxy : CommonProxy() {
                 is ChunkCache -> world.worldObj
                 else -> world as? World ?: return@registerBlockHook
             }
-            val container = ChunkData.get(worldObj, ChunkPos(pos), ChunkDataPaintAtt::class.java)!!//getTrueSaveData(worldObj)
+            val container = ChunkData.get(worldObj, ChunkPos(pos), ChunkDataPaintAtt::class.java) ?: return@registerBlockHook //getTrueSaveData(worldObj)
             if(!container.paintData.containsKey(pos)) return@registerBlockHook
             val nbt = container.paintData[pos] ?: return@registerBlockHook
             val tag = ResourceLocation(nbt.getString(nbtTagPaintBlock))
