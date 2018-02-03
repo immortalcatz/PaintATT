@@ -3,7 +3,6 @@ package eladkay.paintatt.client
 import com.teamwizardry.librarianlib.core.client.RenderHookHandler
 import com.teamwizardry.librarianlib.features.chunkdata.ChunkData
 import com.teamwizardry.librarianlib.features.helpers.ItemNBTHelper
-import com.teamwizardry.librarianlib.features.kotlin.toRl
 import com.teamwizardry.librarianlib.features.methodhandles.MethodHandleHelper
 import eladkay.paintatt.common.ChunkDataPaintAtt
 import eladkay.paintatt.common.CommonProxy
@@ -13,6 +12,8 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.BufferBuilder
 import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.IBakedModel
+import net.minecraft.client.renderer.block.model.ItemOverride
+import net.minecraft.client.renderer.block.model.ItemOverrideList
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.ResourceLocation
@@ -51,19 +52,28 @@ class ClientProxy : CommonProxy() {
         }
 
         RenderHookHandler.registerItemHook { itemStack, iBakedModel ->
-            val str = ItemNBTHelper.getCompound(itemStack, nbtTagPaint)?.getString(nbtTagPaintBlock) ?: return@registerItemHook
-            val tag = str.toRl()
-            val sprite = Minecraft.getMinecraft().textureMapBlocks.getAtlasSprite("${tag.resourceDomain}:blocks/${tag.resourcePath}")
-
+            val nbt = ItemNBTHelper.getCompound(itemStack, nbtTagPaint) ?: return@registerItemHook
+            val str = ResourceLocation(nbt.getString(nbtTagPaintBlock))
+            val meta = nbt.getInteger(nbtTagPaintMeta)
+            val sprite = getSprite(str, meta)
+//            iBakedModel.overrides.list.add(ItemOverride())
 
         }
 
     }
 
+    private val ItemOverrideList.list: MutableList<ItemOverride> by MethodHandleHelper.delegateForReadOnly<ItemOverrideList, MutableList<ItemOverride>>(ItemOverrideList::class.java, "overrides", "field_188023_b", "b")
+
     fun getSprite(name: ResourceLocation, meta: Int): TextureAtlasSprite {
         val iBlockState = Block.REGISTRY.getObject(name).getStateFromMeta(meta)
-        val modelMgr = Minecraft.getMinecraft().blockRendererDispatcher.blockModelShapes.modelManager.blockModelShapes
+        val modelMgr = Minecraft.getMinecraft().blockRendererDispatcher.blockModelShapes
         return modelMgr.getTexture(iBlockState)
+    }
+
+    fun getModel(name: ResourceLocation, meta: Int): IBakedModel {
+        val iBlockState = Block.REGISTRY.getObject(name).getStateFromMeta(meta)
+        val modelMgr = Minecraft.getMinecraft().blockRendererDispatcher.blockModelShapes
+        return modelMgr.getModelForState(iBlockState)
     }
 
     @SideOnly(Side.CLIENT)

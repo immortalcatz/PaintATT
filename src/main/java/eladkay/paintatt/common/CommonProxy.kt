@@ -103,8 +103,9 @@ open class CommonProxy {
             PacketHandler[MOD_ID].send(TargetAll, PacketPaintSync(pos, nbtTag))
         val tag = nbt.getString(nbtTagPaintBlock)
         val meta = nbt.getInteger(nbtTagPaintMeta)
+        val fst = event.drops[0]
         event.drops.clear()
-        event.drops.add(BlockPaintingMachine.getItemStackForPaintedBlock(event.state.block, Block.REGISTRY.getObject(ResourceLocation(tag)), meta, event.state.block.getMetaFromState(event.state)))
+        event.drops.add(BlockPaintingMachine.getItemStackForPaintedBlock(event.state.block, Block.REGISTRY.getObject(ResourceLocation(tag)), fst.tagCompound ?: NBTTagCompound(), meta, event.state.block.getMetaFromState(event.state)))
     }
 
 

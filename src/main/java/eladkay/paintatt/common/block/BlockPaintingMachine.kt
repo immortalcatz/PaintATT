@@ -78,8 +78,9 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
                 = itemStack.isItemEqual(other) &&
                 ItemNBTHelper.getCompound(itemStack, PaintAtt.proxy.nbtTagPaint)?.getString(PaintAtt.proxy.nbtTagPaintBlock) ==
                         ItemNBTHelper.getCompound(other, PaintAtt.proxy.nbtTagPaint)?.getString(PaintAtt.proxy.nbtTagPaintBlock)
-        fun getItemStackForPaintedBlock(iBlockState: Block, painted: Block, meta1: Int = 0, meta2: Int = 0): ItemStack {
+        fun getItemStackForPaintedBlock(iBlockState: Block, painted: Block, nbtTagCompound: NBTTagCompound, meta1: Int = 0, meta2: Int = 0): ItemStack {
             val stack = ItemStack(iBlockState, 1, meta2)
+            stack.tagCompound = nbtTagCompound
             ItemNBTHelper.setCompound(stack, "display", nbt { comp() } as NBTTagCompound)
             ItemNBTHelper.setCompound(stack, PaintAtt.proxy.nbtTagPaint, nbt { comp(PaintAtt.proxy.nbtTagPaintBlock to painted.registryName!!, PaintAtt.proxy.nbtTagPaintMeta to meta1)} as NBTTagCompound)
             return stack
@@ -98,7 +99,7 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
                 if(progress == 0f) {
                     val stack = this.module.handler.extractItem(input, 1, false) // thanks wire
                     this.module.handler.insertItem(output,
-                            getItemStackForPaintedBlock(getBlockFromItem(stack.item), getBlockFromItem(module.handler.getStackInSlot(ghost).item), this.module.handler.extractItem(ghost, 1, true).metadata, stack.metadata),
+                            getItemStackForPaintedBlock(getBlockFromItem(stack.item), getBlockFromItem(module.handler.getStackInSlot(ghost).item), stack.tagCompound ?: NBTTagCompound(), this.module.handler.extractItem(ghost, 1, true).metadata, stack.metadata),
                             false)
 
                     progress = maxProgress
@@ -109,7 +110,7 @@ class BlockPaintingMachine : BlockModContainer("painting_machine", Material.IRON
 
         fun isInputValid(): Boolean {
             val stack = this.module.handler.extractItem(input, 1, true) // thanks wire
-            val paintedStack = getItemStackForPaintedBlock(getBlockFromItem(module.handler.getStackInSlot(input).item), getBlockFromItem(module.handler.getStackInSlot(ghost).item), this.module.handler.extractItem(ghost, 1, true).metadata, stack.metadata)
+            val paintedStack = getItemStackForPaintedBlock(getBlockFromItem(module.handler.getStackInSlot(input).item), getBlockFromItem(module.handler.getStackInSlot(ghost).item), stack.tagCompound ?: NBTTagCompound(), this.module.handler.extractItem(ghost, 1, true).metadata, stack.metadata)
             val input = this.module.handler.getStackInSlot(input)
             val ghost = this.module.handler.getStackInSlot(ghost)
             return input.isNotEmpty &&
