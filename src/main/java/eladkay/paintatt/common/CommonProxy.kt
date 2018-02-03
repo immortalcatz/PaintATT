@@ -16,12 +16,14 @@ import eladkay.paintatt.common.block.ModBlocks
 import eladkay.paintatt.common.networking.PacketClear
 import eladkay.paintatt.common.networking.PacketPaintSync
 import net.minecraft.block.Block
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.ChunkPos
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.ItemTooltipEvent
 import net.minecraftforge.event.world.BlockEvent
+import net.minecraftforge.fml.common.event.FMLInterModComms
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.registry.GameRegistry
@@ -41,6 +43,7 @@ open class CommonProxy {
         PacketHandler.register(PacketClear::class.java, Side.CLIENT)
         ChunkDataRegistry.register("$MOD_ID:paintatt".toRl(), ChunkDataPaintAtt::class.java, ::ChunkDataPaintAtt, { true })
         PaintAtt.Tab
+        FMLInterModComms.sendMessage("waila", "register", "eladkay.paintatt.common.CompatWaila.onWailaCall");
 //        object : ItemMod("tester") {
 //            override fun onItemRightClick(worldIn: World, playerIn: EntityPlayer, handIn: EnumHand?): ActionResult<ItemStack> {
 //                val data = ChunkData.get(worldIn, ChunkPos(playerIn.position), ChunkDataPaintAtt::class.java)!!
@@ -111,7 +114,8 @@ open class CommonProxy {
         val tagg = ItemNBTHelper.getCompound(event.itemStack, nbtTagPaint) ?: return
         val tag = tagg.getString(nbtTagPaintBlock)
         val meta = tagg.getInteger(nbtTagPaintMeta)
-        event.toolTip[0] = "${(event.itemStack.unlocalizedName + ".name").localize()} [Painted as ${Block.REGISTRY.getObject(ResourceLocation(tag)).getStateFromMeta(meta)}]"
-        event.toolTip.add("Painted as " + Block.REGISTRY.getObject(ResourceLocation(tag)).localizedName)
+        val stack = ItemStack(Block.REGISTRY.getObject(tag.toRl()), 1, meta);
+        event.toolTip[0] = "${(event.itemStack.unlocalizedName + ".name").localize()} [Painted as ${stack.displayName}]"
+        event.toolTip.add("Painted as " + stack.displayName)
     }
 }
